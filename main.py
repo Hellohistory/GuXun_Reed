@@ -179,6 +179,8 @@ class MainWindow(QMainWindow):
         # 将书签动作添加到工具栏
         self.toolbar.addAction(bookmark_action)
 
+        self.bookmark_list.itemClicked.connect(self.jump_to_bookmark)
+
         # 初始时隐藏书签面板
         self.bookmark_panel.hide()
 
@@ -230,6 +232,16 @@ class MainWindow(QMainWindow):
             self.page_list.addItems(self.image_browser.get_image_names())
             self.update_content()
 
+    def jump_to_bookmark(self):
+        # 获取被点击的书签的图像 ID
+        selected_item = self.bookmark_list.currentItem()
+        if selected_item:
+            bookmark_name = selected_item.text()
+            for image_id, name in self.image_browser.get_bookmarks():
+                if name == bookmark_name:
+                    self.image_browser.jump_to_image_id(image_id)
+                    self.update_content()
+                    break
 
     def keyPressEvent(self, event):
         page_direction = self.image_browser.get_page_direction()

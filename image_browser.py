@@ -31,6 +31,12 @@ class ImageBrowser:
         """Return a list of bookmarks."""
         return self.bookmarks.items()
 
+    def jump_to_image_id(self, image_id):
+        for index, (img_id, _, _) in enumerate(self.image_data):
+            if img_id == image_id:
+                self.current_index = index
+                break
+
 
 
     def create_html_content(self, scale="100%", preload_count=40):
