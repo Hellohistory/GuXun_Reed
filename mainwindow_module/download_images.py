@@ -1,11 +1,12 @@
 import os
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
-from PyQt5.QtWidgets import QAbstractItemView, QDialog, QVBoxLayout, QListWidget, QPushButton, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QAbstractItemView, QDialog, QVBoxLayout, QListWidget, QPushButton, QFileDialog, QMessageBox, \
+    QTextEdit
 import requests
 
 
 class DownloadSignals(QObject):
-    download_result = pyqtSignal(str, bool)  # Signal to report individual file download result
+    download_result = pyqtSignal(str, bool)  # 信号，用于发送下载结果
 
 
 class DownloadTask(QRunnable):
@@ -25,10 +26,10 @@ class DownloadTask(QRunnable):
             with open(file_path, 'wb') as file:
                 file.write(response.content)
             success = True
-        self.signals.download_result.emit(file_name, success)  # Emit result signal
+        self.signals.download_result.emit(file_name, success)  # 发送下载结果
 
 class DownloadManager:
-    MAX_CONCURRENT_DOWNLOADS = 10  # Maximum number of concurrent downloads
+    MAX_CONCURRENT_DOWNLOADS = 10  # 最大支持同时下载的文件数
 
     def __init__(self, main_window, image_browser):
         self.main_window = main_window
@@ -71,13 +72,23 @@ class DownloadManager:
             self.failed_downloads.append(file_name)
         self.remaining_downloads -= 1
 
-        # Report overall download result when all threads are done
         if self.remaining_downloads == 0:
-            if self.successful_downloads:
-                success_message = "\\n".join(self.successful_downloads)
-                QMessageBox.information(self.main_window, "下载成功",
-                                        f"以下图像已成功下载:\\n{success_message}")
             if self.failed_downloads:
-                failure_message = "\\n".join(self.failed_downloads)
-                QMessageBox.warning(self.main_window, "下载失败",
-                                    f"以下图像下载失败，请稍后重试:\\n{failure_message}")
+                self.show_failed_downloads()
+            else:
+                QMessageBox.information(self.main_window, "下载成功", "全部下载成功!")
+
+    def show_failed_downloads(self):
+        dialog = QDialog(self.main_window)
+        dialog.setWindowTitle("下载失败")
+        layout = QVBoxLayout()
+        text_edit = QTextEdit()
+        text_edit.setReadOnly(True)
+        failure_messages = [f"{file_name} - {error_message}" for file_name, error_message in self.failed_downloads]
+        text_edit.setText("\n".join(failure_messages))
+        layout.addWidget(text_edit)
+        button = QPushButton("确定")
+        button.clicked.connect(dialog.accept)
+        layout.addWidget(button)
+        dialog.setLayout(layout)
+        dialog.exec_()
