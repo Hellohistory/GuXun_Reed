@@ -181,6 +181,9 @@ class MainWindow(QMainWindow):
 
         self.bookmark_list.itemClicked.connect(self.about_bookmark.jump_to_bookmark)
 
+        # 将焦点设置到左侧选择栏的列表小部件上
+        self.page_list.setFocus()
+
         # 初始时隐藏书签面板
         self.bookmark_panel.hide()
 
@@ -234,17 +237,15 @@ class MainWindow(QMainWindow):
 
 
     def keyPressEvent(self, event):
-        page_direction = self.image_browser.get_page_direction()
-        if page_direction == "左右":
-            if event.key() == Qt.Key_Right:
-                self.navigate_page('下一页')
-            elif event.key() == Qt.Key_Left:
-                self.navigate_page('上一页')
-        elif page_direction == "上下":
-            if event.key() == Qt.Key_Down:
-                self.navigate_page('下一页')
-            elif event.key() == Qt.Key_Up:
-                self.navigate_page('上一页')
+        current_row = self.page_list.currentRow()
+        if event.key() == Qt.Key_Right or event.key() == Qt.Key_Down:
+            new_row = min(current_row + 1, self.page_list.count() - 1)
+            self.page_list.setCurrentRow(new_row)
+            self.jump_to_page(new_row)
+        elif event.key() == Qt.Key_Left or event.key() == Qt.Key_Up:
+            new_row = max(current_row - 1, 0)
+            self.page_list.setCurrentRow(new_row)
+            self.jump_to_page(new_row)
         else:
             super().keyPressEvent(event)
 
