@@ -6,44 +6,54 @@ class ImageBrowser:
             file_content = json.load(file)
             self.image_data = [(item['ID'], item['file_extension'], item['file_name']) for item in file_content]
         self.current_index = 0
-        self.page_direction = "左右" # 默认翻页方向
+        self.page_direction = "左右"  # 默认翻页方向
         self.images_per_page = 1  # 每页显示的图像数量
 
-
-        # Initialize the bookmarks dictionary
-        self.bookmarks = {}  # Key: image_id, Value: bookmark_name
+        # 初始化书签字典
+        self.bookmarks = {}  # 键：图像ID，值：书签名称
 
     def add_bookmark(self, image_id, bookmark_name):
-        """Add a new bookmark."""
+        """添加一个新书签"""
         self.bookmarks[image_id] = bookmark_name
 
     def remove_bookmark(self, image_id):
-        """Remove a bookmark by image ID."""
+        """通过图像ID删除书签"""
         if image_id in self.bookmarks:
             del self.bookmarks[image_id]
 
     def edit_bookmark(self, image_id, new_bookmark_name):
-        """Edit the name of a bookmark."""
+        """编辑书签的名称"""
         if image_id in self.bookmarks:
             self.bookmarks[image_id] = new_bookmark_name
 
     def get_bookmarks(self):
-        """Return a list of bookmarks."""
+        """返回书签列表"""
         return self.bookmarks.items()
 
+    def save_bookmarks(self, file_path):
+        """将书签保存到文件中"""
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump(self.bookmarks, file, ensure_ascii=False, indent=4)
+
+    def load_bookmarks(self, file_path):
+        """从文件中加载书签"""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                self.bookmarks = json.load(file)
+        except FileNotFoundError:
+            pass  # 处理文件不存在的情况
+
     def jump_to_image_id(self, image_id):
+        """跳转到指定的图像ID"""
         for index, (img_id, _, _) in enumerate(self.image_data):
             if img_id == image_id:
                 self.current_index = index
                 break
 
-
-
     def create_html_content(self, scale="100%", preload_count=40):
         image_id, file_extension, _ = self.image_data[self.current_index]
         image_url = f"https://picshack.net/ib/{image_id}.{file_extension}"
         html_content = f"<div style='text-align:center;'><img src='{image_url}' alt='{image_id}' style='width:{scale};'/></div>"
-
 
         for i in range(1, preload_count + 1):
             preload_index = self.current_index + i
@@ -60,7 +70,6 @@ class ImageBrowser:
             image_url = f"https://picshack.net/ib/{image_id}.{file_extension}"
             html_content += f"<div style='text-align:center;'><img src='{image_url}' alt='{image_id}' style='width:{scale};'/></div><br/>"
         return html_content
-
 
     def navigate_page(self, direction):
         if direction == '下一页':
@@ -99,16 +108,3 @@ class ImageBrowser:
             if image_data[2] == image_name:
                 return image_data
         return None
-
-    def save_bookmarks(self, file_path):
-        """Save bookmarks to a file."""
-        with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump(self.bookmarks, file, ensure_ascii=False, indent=4)
-
-    def load_bookmarks(self, file_path):
-        """Load bookmarks from a file."""
-        try:
-            with open(file_path, 'r', encoding='utf-8') as file:
-                self.bookmarks = json.load(file)
-        except FileNotFoundError:
-            pass  # Handle the case where the file does not exist

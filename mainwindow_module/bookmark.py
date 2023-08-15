@@ -76,3 +76,13 @@ class AboutBookmark:
         for image_id, bookmark_name in self.image_browser.bookmarks.items():
             item = QListWidgetItem(bookmark_name)
             self.bookmark_list.addItem(item)
+
+    def jump_to_bookmark(self):
+        selected_item = self.bookmark_list.currentItem()
+        if selected_item:
+            bookmark_name = selected_item.text()
+            for image_id, name in self.image_browser.get_bookmarks():
+                if name == bookmark_name:
+                    self.image_browser.jump_to_image_id(image_id)
+                    self.main_window.update_content()
+                    break

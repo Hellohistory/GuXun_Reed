@@ -12,12 +12,12 @@ from PyQt5.QtWidgets import QSplitter
 from PyQt5.QtWidgets import QToolBar, QAction
 from PyQt5.QtWidgets import QVBoxLayout, QListWidget, QPushButton
 
-from STYLESHEET import LIGHT_THEME, DARK_THEME, BLUE_THEME, BRET_THEME, ACID_THEME
 from image_browser import ImageBrowser  # 导入核心逻辑类
 from mainwindow_module.about import Aboutme
 from mainwindow_module.bookmark import AboutBookmark
-from mainwindow_module.download_images import DownloadManager
 from mainwindow_module.theme_menu import add_theme_menu
+from mainwindow_module.download_images import DownloadManager
+from STYLESHEET import LIGHT_THEME, DARK_THEME, BLUE_THEME, BRET_THEME, ACID_THEME
 
 # 定义QSS样式表
 STYLESHEET = LIGHT_THEME # 默认主题
@@ -179,7 +179,7 @@ class MainWindow(QMainWindow):
         # 将书签动作添加到工具栏
         self.toolbar.addAction(bookmark_action)
 
-        self.bookmark_list.itemClicked.connect(self.jump_to_bookmark)
+        self.bookmark_list.itemClicked.connect(self.about_bookmark.jump_to_bookmark)
 
         # 初始时隐藏书签面板
         self.bookmark_panel.hide()
@@ -232,16 +232,6 @@ class MainWindow(QMainWindow):
             self.page_list.addItems(self.image_browser.get_image_names())
             self.update_content()
 
-    def jump_to_bookmark(self):
-        # 获取被点击的书签的图像 ID
-        selected_item = self.bookmark_list.currentItem()
-        if selected_item:
-            bookmark_name = selected_item.text()
-            for image_id, name in self.image_browser.get_bookmarks():
-                if name == bookmark_name:
-                    self.image_browser.jump_to_image_id(image_id)
-                    self.update_content()
-                    break
 
     def keyPressEvent(self, event):
         page_direction = self.image_browser.get_page_direction()
@@ -267,7 +257,7 @@ def resource_path(relative_path):
 
 def main():
     # 获取示例.json的绝对路径
-    file_path = resource_path('示例.json')
+    file_path = resource_path('测试文件.json')
 
     # 创建图像浏览器实例
     image_browser = ImageBrowser(file_path=file_path)
