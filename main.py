@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import QVBoxLayout, QListWidget, QPushButton
 
 from image_browser import ImageBrowser  # 导入核心逻辑类
 from mainwindow_module.about import Aboutme
+from mainwindow_module.page import PageController
 from mainwindow_module.bookmark import AboutBookmark
 from mainwindow_module.theme_menu import add_theme_menu
 from mainwindow_module.download_images import DownloadManager
@@ -31,6 +32,7 @@ class MainWindow(QMainWindow):
     def __init__(self, image_browser):
         super().__init__()
         self.image_browser = image_browser
+        self.page_controller = PageController(self, image_browser)
 
         # 设置窗口标题
         self.setWindowTitle("故尋阅读")
@@ -80,20 +82,18 @@ class MainWindow(QMainWindow):
 
         # 创建左右翻页按钮
         left_right_page_action = QAction("左右翻页", self)
-        left_right_page_action.triggered.connect(lambda: self.change_page_direction('左右'))
+        left_right_page_action.triggered.connect(lambda: self.page_controller.change_page_direction('左右'))
         self.toolbar.addAction(left_right_page_action)
 
         # 创建上下翻页按钮
         up_down_page_action = QAction("上下翻页", self)
-        up_down_page_action.triggered.connect(lambda: self.change_page_direction('上下'))
+        up_down_page_action.triggered.connect(lambda: self.page_controller.change_page_direction('上下'))
         self.toolbar.addAction(up_down_page_action)
-
 
         # 添加显示/隐藏选择栏的操作
         toggle_action = QAction("显示/隐藏选择栏", self)
         toggle_action.triggered.connect(self.toggle_page_selector)
         self.toolbar.addAction(toggle_action)
-
 
         # 创建中央小部件
         central_widget = QWidget()
@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         self.left_v_layout = QVBoxLayout()
         self.page_list = QListWidget() # 使用 QListWidget 替代 QComboBox
         self.page_list.addItems(self.image_browser.get_image_names())
-        self.page_list.currentRowChanged.connect(self.jump_to_page)
+        self.page_list.currentRowChanged.connect(self.page_controller.jump_to_page)
         self.left_v_layout.addWidget(self.page_list)
 
         # 创建右侧垂直布局
@@ -113,11 +113,11 @@ class MainWindow(QMainWindow):
         top_h_layout = QHBoxLayout()
         prev_button = QPushButton("上一页")
         next_button = QPushButton("下一页")
-        prev_button.clicked.connect(lambda: self.navigate_page('上一页'))
-        next_button.clicked.connect(lambda: self.navigate_page('下一页'))
+        prev_button.clicked.connect(lambda: self.page_controller.navigate_page('上一页'))
+        next_button.clicked.connect(lambda: self.page_controller.navigate_page('下一页'))
         self.scale_selector = QComboBox()
         self.scale_selector.addItems(["50%", "75%", "100%", "200%", "400%", "根据宽度", "根据长度", "实际比例"])
-        self.scale_selector.currentIndexChanged.connect(self.update_content)
+        self.scale_selector.currentIndexChanged.connect(self.page_controller.update_content)
 
         # 删除此处的翻页方向选择器
         top_h_layout.addWidget(prev_button)
@@ -188,43 +188,17 @@ class MainWindow(QMainWindow):
         self.bookmark_panel.hide()
 
         # 加载初始内容
-        self.update_content()
+        self.page_controller.update_content()
 
-    def navigate_page(self, direction):
-        self.image_browser.navigate_page(direction)
-        self.update_content()
-
-    def jump_to_page(self, index):
-        self.image_browser.jump_to_page(index)
-        self.update_content()
 
     def change_theme(self, index):
         themes = [LIGHT_THEME, DARK_THEME, BLUE_THEME, BRET_THEME, ACID_THEME]
         selected_theme = themes[index]
         app.setStyleSheet(selected_theme)
 
-    def change_page_direction(self, direction):
-        self.image_browser.set_page_direction(direction)
-        self.update_content()
-
     def toggle_page_selector(self):
         left_widget = self.left_v_layout.parentWidget()
         left_widget.setVisible(not left_widget.isVisible())
-
-    def update_content(self):
-        scale_option = self.scale_selector.currentText()
-        scale = scale_option if "%" in scale_option else "100%"
-
-        # 根据翻页方向选择HTML内容生成方式
-        if self.image_browser.get_page_direction() == "左右":
-            html_content = self.image_browser.create_html_content(scale=scale)
-        else:
-            html_content = self.image_browser.create_vertical_html_content(scale=scale)
-
-        self.view.setHtml(html_content)
-        self.status_bar.showMessage(
-            f"页面 {self.image_browser.get_current_index() + 1} / {self.image_browser.get_total_pages()}")
-
 
     def select_json_file(self):
         options = QFileDialog.Options()
@@ -233,22 +207,20 @@ class MainWindow(QMainWindow):
             self.image_browser.load_new_file(file_path)
             self.page_list.clear()
             self.page_list.addItems(self.image_browser.get_image_names())
-            self.update_content()
-
+            self.page_controller.update_content()
 
     def keyPressEvent(self, event):
         current_row = self.page_list.currentRow()
         if event.key() == Qt.Key_Right or event.key() == Qt.Key_Down:
             new_row = min(current_row + 1, self.page_list.count() - 1)
             self.page_list.setCurrentRow(new_row)
-            self.jump_to_page(new_row)
+            self.page_controller.jump_to_page(new_row)
         elif event.key() == Qt.Key_Left or event.key() == Qt.Key_Up:
             new_row = max(current_row - 1, 0)
             self.page_list.setCurrentRow(new_row)
-            self.jump_to_page(new_row)
+            self.page_controller.jump_to_page(new_row)
         else:
             super().keyPressEvent(event)
-
 
 def resource_path(relative_path):
     """ 获取绝对路径以使程序找到打包后的文件 """
