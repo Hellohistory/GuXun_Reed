@@ -55,10 +55,15 @@ class AboutBookmark:
         new_name, ok = QInputDialog.getText(self.main_window, "重命名书签", "输入新的书签名称:", text=old_name)
 
         if ok and new_name:
-            image_id = [key for key, value in self.image_browser.bookmarks.items() if value == old_name][0]
-            self.image_browser.bookmarks[image_id] = new_name
+            # 使用列表控件中的行索引来确定要重命名的书签的索引
+            index = self.bookmark_list.row(item)
+            image_id, _, _, _ = self.image_browser.image_data[index]
 
-            self.update_bookmark_list()
+            # 使用ImageBrowser类的edit_bookmark方法来编辑书签
+            self.image_browser.edit_bookmark(image_id, new_name)
+
+            # 更新列表控件中的项
+            item.setText(new_name)
 
             bookmark_file_path = "bookmarks.json"
             self.image_browser.save_bookmarks(bookmark_file_path)
@@ -73,16 +78,17 @@ class AboutBookmark:
 
     def update_bookmark_list(self):
         self.bookmark_list.clear()
-        for image_id, bookmark_name in self.image_browser.bookmarks.items():
-            item = QListWidgetItem(bookmark_name)
-            self.bookmark_list.addItem(item)
+        for _, _, _, bookmark_name in self.image_browser.image_data:
+            if bookmark_name:  # 只添加非空书签
+                item = QListWidgetItem(bookmark_name)
+                self.bookmark_list.addItem(item)
 
     def jump_to_bookmark(self):
         selected_item = self.bookmark_list.currentItem()
         if selected_item:
             bookmark_name = selected_item.text()
-            for image_id, name in self.image_browser.get_bookmarks():
+            for img_id, _, _, name in self.image_browser.image_data:
                 if name == bookmark_name:
-                    self.image_browser.jump_to_image_id(image_id)
-                    self.main_window.update_content()
+                    self.image_browser.jump_to_image_id(img_id)
+                    self.main_window.page_controller.update_content()  # 调用PageController的update_content方法
                     break
