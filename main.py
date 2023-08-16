@@ -47,8 +47,6 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
 
         self.bookmark_list = QListWidget()
-        bookmark_file_path = "bookmarks.json"  # 与保存书签时使用的路径相同
-        self.image_browser.load_bookmarks(bookmark_file_path)
 
         # 创建下载管理器实例，并传递当前窗口和 image_browser
         self.download_manager = DownloadManager(self, image_browser)

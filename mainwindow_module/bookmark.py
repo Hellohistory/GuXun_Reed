@@ -24,8 +24,8 @@ class AboutBookmark:
         self.update_bookmark_list()
         self.toggle_bookmark_panel()
 
-        bookmark_file_path = "bookmarks.json"
-        self.image_browser.save_bookmarks(bookmark_file_path)
+        # 保存书签到原始文件路径
+        self.image_browser.save_bookmarks(self.image_browser.file_path)
 
     def toggle_bookmark_panel(self):
         if self.bookmark_panel.isVisible():
@@ -65,8 +65,8 @@ class AboutBookmark:
             # 更新列表控件中的项
             item.setText(new_name)
 
-            bookmark_file_path = "bookmarks.json"
-            self.image_browser.save_bookmarks(bookmark_file_path)
+            # 保存书签到原始文件路径
+            self.image_browser.save_bookmarks(self.image_browser.file_path)
 
             # 设置文件已更改标记
             self.image_browser.file_changed = True
