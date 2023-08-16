@@ -67,11 +67,12 @@ class AboutBookmark:
             # 更新列表控件中的项
             item.setText(new_name)
 
+            # 设置文件已更改标记
+            self.image_browser.file_changed = True
+
             # 保存书签到原始文件路径
             self.image_browser.save_bookmarks(self.image_browser.file_path)
 
-            # 设置文件已更改标记
-            self.image_browser.file_changed = True
 
     def delete_bookmark(self, item):
         bookmark_name = item.text()
@@ -110,7 +111,8 @@ class AboutBookmark:
         # 检查书签是否被修改
         if self.image_browser.bookmarks_modified:
             msg_box = QMessageBox(main_window)
-            msg_box.setText("您要保存对书签的更改吗？")
+            msg_box.setWindowTitle("保存书签")  # 设置自定义窗口标题
+            msg_box.setText("您是否需要将书签写入原始文件")
 
             yes_button = msg_box.addButton("是", QMessageBox.YesRole)
             no_button = msg_box.addButton("否", QMessageBox.NoRole)

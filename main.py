@@ -204,12 +204,23 @@ class MainWindow(QMainWindow):
 
     def select_json_file(self):
         options = QFileDialog.Options()
-        file_path, _ = QFileDialog.getOpenFileName(self, "选择JSON文件", "", "JSON Files (*.json);;All Files (*)", options=options)
+        file_path, _ = QFileDialog.getOpenFileName(self, "选择JSON文件", "", "JSON Files (*.json);;All Files (*)",
+                                                   options=options)
         if file_path:
+            # 询问用户是否保存当前书签更改
+            self.about_bookmark.save_changes(self)
+
+            # 加载新的JSON文件
             self.image_browser.load_new_file(file_path)
+
+            # 清除并更新页面列表
             self.page_list.clear()
-            self.image_browser.save_changes(self)
             self.page_list.addItems(self.image_browser.get_image_names())
+
+            # 更新书签列表
+            self.about_bookmark.update_bookmark_list()
+
+            # 更新页面控制器的内容
             self.page_controller.update_content()
 
     def keyPressEvent(self, event):
