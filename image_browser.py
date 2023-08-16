@@ -9,6 +9,7 @@ class ImageBrowser:
         self.page_direction = "左右"  # 默认翻页方向
         self.images_per_page = 1  # 每页显示的图像数量
         self.file_path = file_path
+        self.bookmarks_modified = False
         self.file_changed = False  # 文件是否被修改过
 
         # 初始化书签字典
