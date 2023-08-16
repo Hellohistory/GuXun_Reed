@@ -46,9 +46,15 @@ class DownloadManager:
         list_widget.addItems(image_names)
         list_widget.setSelectionMode(QAbstractItemView.MultiSelection)
         layout.addWidget(list_widget)
-        button = QPushButton("确定")
-        button.clicked.connect(dialog.accept)
-        layout.addWidget(button)
+
+        # 创建全选按钮并连接到自定义槽函数
+        select_all_button = QPushButton("全选/取消全选")
+        select_all_button.clicked.connect(lambda: self.toggle_select_all(list_widget))
+        layout.addWidget(select_all_button)
+
+        confirm_button = QPushButton("确定")
+        confirm_button.clicked.connect(dialog.accept)
+        layout.addWidget(confirm_button)
         dialog.setLayout(layout)
         dialog.resize(700, 500)
 
@@ -77,6 +83,13 @@ class DownloadManager:
                 self.show_failed_downloads()
             else:
                 QMessageBox.information(self.main_window, "下载成功", "全部下载成功!")
+
+    def toggle_select_all(self, list_widget):
+        # 根据当前选择状态切换全选/全不选
+        if list_widget.count() != len(list_widget.selectedItems()):
+            list_widget.selectAll()
+        else:
+            list_widget.clearSelection()
 
     def show_failed_downloads(self):
         dialog = QDialog(self.main_window)
