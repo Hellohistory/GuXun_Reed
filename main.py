@@ -196,6 +196,10 @@ class MainWindow(QMainWindow):
         selected_theme = themes[index]
         app.setStyleSheet(selected_theme)
 
+    def closeEvent(self, event):
+        self.about_bookmark.save_changes(self)  # 调用 AboutBookmark 类的 save_changes 方法
+        event.accept()
+
     def toggle_page_selector(self):
         left_widget = self.left_v_layout.parentWidget()
         left_widget.setVisible(not left_widget.isVisible())
@@ -206,6 +210,7 @@ class MainWindow(QMainWindow):
         if file_path:
             self.image_browser.load_new_file(file_path)
             self.page_list.clear()
+            self.image_browser.save_changes(self)
             self.page_list.addItems(self.image_browser.get_image_names())
             self.page_controller.update_content()
 

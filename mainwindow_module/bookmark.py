@@ -68,6 +68,9 @@ class AboutBookmark:
             bookmark_file_path = "bookmarks.json"
             self.image_browser.save_bookmarks(bookmark_file_path)
 
+            # 设置文件已更改标记
+            self.image_browser.file_changed = True
+
     def delete_bookmark(self, item):
         bookmark_name = item.text()
         image_id = [key for key, value in self.image_browser.bookmarks.items() if value == bookmark_name][0]
@@ -92,3 +95,28 @@ class AboutBookmark:
                     self.image_browser.jump_to_image_id(img_id)
                     self.main_window.page_controller.update_content()  # 调用PageController的update_content方法
                     break
+
+    def save_changes(self, main_window):
+        msg_box = QMessageBox(main_window)
+        msg_box.setText("您要保存对书签的更改吗？")
+
+        yes_button = msg_box.addButton("是", QMessageBox.YesRole)
+        no_button = msg_box.addButton("否", QMessageBox.NoRole)
+
+        msg_box.setDefaultButton(yes_button)
+
+        result = msg_box.exec_()
+
+        if msg_box.clickedButton() == yes_button:
+            # 用户点击了"是"按钮
+            self.image_browser.save_bookmarks(self.image_browser.file_path)
+        else:
+            # 用户点击了"否"按钮
+            new_file_path = self.image_browser.file_path.replace('.json', '_bookmark.json')
+            self.image_browser.save_bookmarks(new_file_path)
+
+            if result == QMessageBox.Yes:
+                self.image_browser.save_bookmarks(self.image_browser.file_path)  # 保存到原始文件路径
+            else:
+                new_file_path = self.image_browser.file_path.replace('.json', '_bookmark.json')
+                self.image_browser.save_bookmarks(new_file_path)  # 保存到新文件路径

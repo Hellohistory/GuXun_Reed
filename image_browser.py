@@ -8,6 +8,8 @@ class ImageBrowser:
         self.current_index = 0
         self.page_direction = "左右"  # 默认翻页方向
         self.images_per_page = 1  # 每页显示的图像数量
+        self.file_path = file_path
+        self.file_changed = False  # 文件是否被修改过
 
         # 初始化书签字典
         self.bookmarks = {}  # 键：图像ID，值：书签名称
@@ -17,6 +19,7 @@ class ImageBrowser:
         for index, (img_id, ext, name, _) in enumerate(self.image_data):
             if img_id == image_id:
                 self.image_data[index] = (img_id, ext, name, bookmark_name)
+                self.file_changed = True
                 break
 
     def remove_bookmark(self, image_id):
