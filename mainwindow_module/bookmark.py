@@ -73,11 +73,19 @@ class AboutBookmark:
 
     def delete_bookmark(self, item):
         bookmark_name = item.text()
-        image_id = [key for key, value in self.image_browser.bookmarks.items() if value == bookmark_name][0]
 
-        del self.image_browser.bookmarks[image_id]
+        # Find the image_id corresponding to the bookmark_name from image_data
+        image_id = None
+        for img_id, _, _, bm_name in self.image_browser.image_data:
+            if bm_name == bookmark_name:
+                image_id = img_id
+                break
 
-        self.update_bookmark_list()
+        if image_id is not None:
+            self.image_browser.remove_bookmark(image_id)
+            self.update_bookmark_list()
+        else:
+            print("Bookmark not found!")
 
     def update_bookmark_list(self):
         self.bookmark_list.clear()
