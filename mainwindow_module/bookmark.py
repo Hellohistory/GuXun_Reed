@@ -24,6 +24,8 @@ class AboutBookmark:
         self.update_bookmark_list()
         self.toggle_bookmark_panel()
 
+        self.image_browser.bookmarks_modified = True
+
         # 保存书签到原始文件路径
         self.image_browser.save_bookmarks(self.image_browser.file_path)
 
@@ -73,8 +75,6 @@ class AboutBookmark:
 
     def delete_bookmark(self, item):
         bookmark_name = item.text()
-
-        # Find the image_id corresponding to the bookmark_name from image_data
         image_id = None
         for img_id, _, _, bm_name in self.image_browser.image_data:
             if bm_name == bookmark_name:
@@ -84,6 +84,8 @@ class AboutBookmark:
         if image_id is not None:
             self.image_browser.remove_bookmark(image_id)
             self.update_bookmark_list()
+            # 设置书签已更改标记
+            self.image_browser.bookmarks_modified = True
         else:
             print("Bookmark not found!")
 
@@ -105,26 +107,24 @@ class AboutBookmark:
                     break
 
     def save_changes(self, main_window):
-        msg_box = QMessageBox(main_window)
-        msg_box.setText("您要保存对书签的更改吗？")
+        # 检查书签是否被修改
+        if self.image_browser.bookmarks_modified:
+            msg_box = QMessageBox(main_window)
+            msg_box.setText("您要保存对书签的更改吗？")
 
-        yes_button = msg_box.addButton("是", QMessageBox.YesRole)
-        no_button = msg_box.addButton("否", QMessageBox.NoRole)
+            yes_button = msg_box.addButton("是", QMessageBox.YesRole)
+            no_button = msg_box.addButton("否", QMessageBox.NoRole)
 
-        msg_box.setDefaultButton(yes_button)
+            msg_box.setDefaultButton(yes_button)
 
-        result = msg_box.exec_()
+            result = msg_box.exec_()
 
-        if msg_box.clickedButton() == yes_button:
-            # 用户点击了"是"按钮
-            self.image_browser.save_bookmarks(self.image_browser.file_path)
-        else:
-            # 用户点击了"否"按钮
-            new_file_path = self.image_browser.file_path.replace('.json', '_bookmark.json')
-            self.image_browser.save_bookmarks(new_file_path)
-
-            if result == QMessageBox.Yes:
-                self.image_browser.save_bookmarks(self.image_browser.file_path)  # 保存到原始文件路径
+            if msg_box.clickedButton() == yes_button:
+                # 用户点击了"是"按钮
+                self.image_browser.save_bookmarks(self.image_browser.file_path)
+                self.image_browser.bookmarks_modified = False  # 重置标志
             else:
+                # 用户点击了"否"按钮
                 new_file_path = self.image_browser.file_path.replace('.json', '_bookmark.json')
-                self.image_browser.save_bookmarks(new_file_path)  # 保存到新文件路径
+                self.image_browser.save_bookmarks(new_file_path)
+                self.image_browser.bookmarks_modified = False  # 重置标志
