@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QVBoxLayout, QListWidget, QPushButton
 from STYLESHEET import LIGHT_THEME, DARK_THEME, BLUE_THEME, BRET_THEME, ACID_THEME
 from mainwindow_module.about import Aboutme
 from mainwindow_module.bookmark import AboutBookmark
-from mainwindow_module.download_images import DownloadManager
+from mainwindow_module.download import DownloadManager
 from mainwindow_module.page import PageController
 from mainwindow_module.theme_menu import add_theme_menu
 
