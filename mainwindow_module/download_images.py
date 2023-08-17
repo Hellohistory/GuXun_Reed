@@ -17,7 +17,7 @@ class DownloadTask(QRunnable):
         self.signals = DownloadSignals()
 
     def run(self):
-        image_id, extension, file_name = self.image_data
+        image_id, extension, file_name, boookmark= self.image_data
         url = f"https://picshack.net/ib/download/{image_id}"
         response = requests.get(url)
         success = False
