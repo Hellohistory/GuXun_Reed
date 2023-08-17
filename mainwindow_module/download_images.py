@@ -4,10 +4,11 @@ from PyQt5.QtWidgets import QAbstractItemView, QDialog, QVBoxLayout, QListWidget
     QTextEdit
 import requests
 
+from pdf_module.merge import merge_images_to_pdf
+
 
 class DownloadSignals(QObject):
-    download_result = pyqtSignal(str, bool)  # 信号，用于发送下载结果
-
+    download_result = pyqtSignal(tuple, bool)  # 修改信号定义，接受一个元组和一个布尔值
 
 class DownloadTask(QRunnable):
     def __init__(self, image_data, save_directory):
@@ -25,8 +26,8 @@ class DownloadTask(QRunnable):
             file_path = os.path.join(self.save_directory, f"{file_name}.{extension}")
             with open(file_path, 'wb') as file:
                 file.write(response.content)
-            success = True
-        self.signals.download_result.emit(file_name, success)  # 发送下载结果
+                success = True
+            self.signals.download_result.emit(self.image_data, success)  # 注意这里传递整个 image_data
 
 class DownloadManager:
     MAX_CONCURRENT_DOWNLOADS = 10  # 最大支持同时下载的文件数
@@ -36,6 +37,8 @@ class DownloadManager:
         self.image_browser = image_browser
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(self.MAX_CONCURRENT_DOWNLOADS)
+        self.successful_downloads = []  # 初始化成功下载的文件列表
+        self.failed_downloads = []  # 初始化失败下载的文件列表
 
     def download_images(self):
         dialog = QDialog(self.main_window)
@@ -59,23 +62,24 @@ class DownloadManager:
         dialog.resize(700, 500)
 
         if dialog.exec_():
-            selected_images = [self.image_browser.get_image_data_by_name(item.text()) for item in list_widget.selectedItems()]
-            save_directory = QFileDialog.getExistingDirectory(self.main_window, "选择保存目录")
+            selected_images = [self.image_browser.get_image_data_by_name(item.text()) for item in
+                               list_widget.selectedItems()]
+            self.save_directory = QFileDialog.getExistingDirectory(self.main_window, "选择保存目录")
 
             self.successful_downloads = []
             self.failed_downloads = []
             self.remaining_downloads = len(selected_images)
 
             for image_data in selected_images:
-                download_task = DownloadTask(image_data, save_directory)
+                download_task = DownloadTask(image_data, self.save_directory)
                 download_task.signals.download_result.connect(self.on_download_result)
                 self.thread_pool.start(download_task)
 
-    def on_download_result(self, file_name, success):
+    def on_download_result(self, image_data, success):
         if success:
-            self.successful_downloads.append(file_name)
+            self.successful_downloads.append(image_data)
         else:
-            self.failed_downloads.append(file_name)
+            self.failed_downloads.append(image_data)
         self.remaining_downloads -= 1
 
         if self.remaining_downloads == 0:
@@ -83,6 +87,11 @@ class DownloadManager:
                 self.show_failed_downloads()
             else:
                 QMessageBox.information(self.main_window, "下载成功", "全部下载成功!")
+                reply = QMessageBox.question(self.main_window, '合并为PDF?', "是否将下载的图片合并为PDF文件?",
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    downloaded_files = [f"{item[2]}.{item[1]}" for item in self.successful_downloads]  # 注意顺序
+                    merge_images_to_pdf(self.save_directory, downloaded_files, self.image_browser.file_path)
 
     def toggle_select_all(self, list_widget):
         # 根据当前选择状态切换全选/全不选
