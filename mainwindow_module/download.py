@@ -100,6 +100,7 @@ class DownloadManager:
         else:
             list_widget.clearSelection()
 
+    # 下载失败的情况
     def show_failed_downloads(self):
         dialog = QDialog(self.main_window)
         dialog.setWindowTitle("下载失败")
